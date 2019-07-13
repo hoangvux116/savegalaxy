@@ -13,7 +13,7 @@ LEVEL1_SCORE = 2500
 LEVEL2_SCORE = 4500
 # Sprites property
 # Bullet
-BULLET_SPEED = -100
+BULLET_SPEED = -50
 # Ship
 SHIP_SPEED = 8
 # Meteor
@@ -54,6 +54,8 @@ ufo_dir = os.path.join(img_dir, 'ufo')
 background_path = os.path.join(img_dir, 'background.jpg')
 # Font
 font_path = os.path.join(os.path.abspath('.'), 'font', 'RobotoMono.ttf')
+# Sound path
+sound_dir = os.path.join(os.path.abspath('.'), 'sound')
 
 # Groups
 all_sprites = pygame.sprite.Group()
@@ -103,6 +105,11 @@ bullet_img = pygame.image.load(os.path.join(spaceship_dir, 'laserBlue.png')).con
 # BOSS image
 boss_img = pygame.image.load(os.path.join(ufo_dir, 'boss.png')).convert()
 
+# Load sound
+# shoot sound
+shoot_sound = pygame.mixer.Sound(os.path.join(sound_dir, "shoot.wav"))
+# Explosion
+explosion_sound = pygame.mixer.Sound(os.path.join(sound_dir, "explosion.wav"))
 
 # Define bullet
 class Bullet(pygame.sprite.Sprite):
@@ -184,6 +191,7 @@ class SpaceShip(pygame.sprite.Sprite):
             self.rect.right = WIDTH
 
     def shoot(self):
+        #shoot_sound.play()
         bullet = Bullet(self.rect.centerx, self.rect.top)
         all_sprites.add(bullet)
         bullets.add(bullet)
@@ -348,6 +356,10 @@ def show_begin_game(screen):
     '''
     start_game = False
     screen.blit(background, background_rect)
+    # music
+    pygame.mixer.music.load(os.path.join(sound_dir, "intro.wav"))
+    pygame.mixer.music.set_volume(1)
+    pygame.mixer.music.play(loops=-1)
     # Draw
     draw_message(screen, "Save Galaxy", 69, GALAXY_COLOR, WIDTH / 2, 80)
     draw_message(screen, "Press left and right arrow key to move spaceship", 32, WHITE, WIDTH / 2, 350)
@@ -367,6 +379,8 @@ def show_begin_game(screen):
                 sys.exit()
             if event.type == KEYUP:
                 start_game = True
+                # Stop intro music when game's start
+                pygame.mixer.music.stop()
 
 
 def show_game_message(message, score):
@@ -468,6 +482,7 @@ def main(score):
                 if event.key == K_RIGHT:
                     ship.speed = 8
                 if event.key == K_SPACE:
+                    shoot_sound.play()
                     ship.shoot()
 
         if score >= LEVEL2_SCORE:
@@ -500,14 +515,17 @@ def main(score):
         # ship hit meteor
         ship_collide_meteor = ship.collide(meteors)
         if ship_collide_meteor:
+            explosion_sound.play()
             game_over = True
         
         ship_collide_ufo = ship.collide(UFOs)
         if ship_collide_ufo:
+            explosion_sound.play()
             game_over = True
 
         ship_collide_ufo_weapons = ship.collide(UFOWeapons)
         if ship_collide_ufo_weapons:
+            explosion_sound.play()
             game_over = True
 
         # bullets hit meteor
@@ -518,6 +536,7 @@ def main(score):
             # Generate explosions
             expl = Explosion(hit)
             all_sprites.add(expl)
+            explosion_sound.play()
             # Create new meteor
             if score < LEVEL1_SCORE:
                 create_new_meteor()
@@ -532,6 +551,7 @@ def main(score):
                     # Generate explosions
                     expl = Explosion(ufo)
                     all_sprites.add(expl)
+                    explosion_sound.play()
                     ufo.kill()
                 else:
                     ufo.heal -= 1
@@ -544,11 +564,13 @@ def main(score):
                 score += BOSS_SCORE
                 boss_expl = Explosion(boss)
                 all_sprites.add(boss_expl)
+                explosion_sound.play()
                 boss.kill()
                 game_win = True
             for bullet in boss_hit_by_bullets[boss]:
                 bullet_expl = Explosion(bullet)
                 all_sprites.add(bullet_expl)
+                explosion_sound.play()
 
         # Draw
         screen.blit(background, background_rect)
