@@ -38,9 +38,6 @@ GALAXY_COLOR = (0, 144, 133)
 pygame.init()
 pygame.mixer.init()
 score = 0
-level = 0
-ufo_added = False
-boss_added = False
 
 # Screen
 screen = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
@@ -53,7 +50,9 @@ meteor_dir = os.path.join(img_dir, 'meteor')
 spaceship_dir = os.path.join(img_dir, 'spaceship')
 explosions_dir = os.path.join(img_dir, 'explosions')
 ufo_dir = os.path.join(img_dir, 'ufo')
+# Background
 background_path = os.path.join(img_dir, 'background.jpg')
+# Font
 font_path = os.path.join(os.path.abspath('.'), 'font', 'RobotoMono.ttf')
 
 # Groups
@@ -71,7 +70,7 @@ background = pygame.image.load(background_path).convert()
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 background_rect = background.get_rect()
 
-# load meteor
+# load meteor images
 meteor_imgs = []
 for img_num in range(1, 9):
     meteor_img = pygame.image.load(os.path.join(meteor_dir, 'meteor{}.png'.format(img_num))).convert()
@@ -89,7 +88,7 @@ for img_num in range(1, 3):
     ufo_weapon = pygame.image.load(os.path.join(ufo_dir, 'ufo_weapon{}.png'.format(img_num))).convert()
     ufo_weapons_img.append(ufo_weapon)
 
-# Explosions
+# Explosion frames
 explosions_imgs = []
 for i in range(9):
     image_path = os.path.join(explosions_dir, 'regularExplosion0{}.png'.format(i))
@@ -195,7 +194,7 @@ class SpaceShip(pygame.sprite.Sprite):
         if group_crashed:
             for element in group_crashed:
                 # Generate explosions
-                ship_expl = Explosion(ship)
+                ship_expl = Explosion(self)
                 all_sprites.add(ship_expl)
                 element_expl = Explosion(element)
                 all_sprites.add(element_expl)
@@ -331,6 +330,9 @@ class Explosion(pygame.sprite.Sprite):
  
 
 def draw_message(suface, message, size, color, x, y):
+    '''
+    Draw a message at position: midtop = (x, y), width font size and color on input Suface
+    '''
     font_path = os.path.join(os.path.abspath('.'), 'font', 'RobotoMono.ttf')
     font_family = pygame.font.match_font(font_path)
     font = pygame.font.Font(font_family, size)
@@ -341,14 +343,20 @@ def draw_message(suface, message, size, color, x, y):
 
 
 def show_begin_game(screen):
+    '''
+    Show guild when game's start
+    '''
     start_game = False
     screen.blit(background, background_rect)
+    # Draw
     draw_message(screen, "Save Galaxy", 69, GALAXY_COLOR, WIDTH / 2, 80)
     draw_message(screen, "Press left and right arrow key to move spaceship", 32, WHITE, WIDTH / 2, 350)
     draw_message(screen, "Press <space> to fire", 32, WHITE, WIDTH / 2, 400)
     draw_message(screen, ">>Press any key to start game<<", 24, WHITE, WIDTH / 2, 500)
     draw_message(screen, "Press ESC to quit game", 18, WHITE, WIDTH / 2, 600)
+    # Render
     pygame.display.flip()
+    # Event processing
     quit_game = False
     while not start_game and not quit_game:
         clock.tick(15)
@@ -361,13 +369,12 @@ def show_begin_game(screen):
                 start_game = True
 
 
-def show_game_win_message():
-    pass
-
-
-def show_game_over():
+def show_game_message(message, score):
+    '''
+    Show a message on screen when game over or game win.
+    '''
     screen.blit(background, background_rect)
-    draw_message(screen, "Game Over", 69, GALAXY_COLOR, WIDTH // 2, 80)
+    draw_message(screen, message, 69, GALAXY_COLOR, WIDTH // 2, 80)
     score_message = "Your score: {}".format(score)
     draw_message(screen, score_message, 50, WHITE, WIDTH // 2, 200)
     draw_message(screen, "<F5> to try again", 32, WHITE, WIDTH // 4, 500)
@@ -387,192 +394,175 @@ def show_game_over():
 
 
 def create_new_meteor():
+    '''
+    '''
     meteor = Meteor()
     meteors.add(meteor)
     all_sprites.add(meteor)
 
 
-def print_score(suface, score, size, x, y):
-    font_path = os.path.join(os.path.abspath('.'), 'font', 'RobotoMono.ttf')
-    font_family = pygame.font.match_font(font_path)
-    font = pygame.font.Font(font_family, size)
-    score_surf = font.render(str(score), True, WHITE)
-    score_rect = score_surf.get_rect()
-    score_rect.midtop = (x, y)
-    suface.blit(score_surf, score_rect)
+def main(score):
+    level = 0
+    ufo_added = False
+    boss_added = False
+    # Spaceship gen
+    ship = SpaceShip()
+    all_sprites.add(ship)
+    # meteor gen
+    for i in range(NUMBER_OF_METEOR):
+        meteor = Meteor()
+        meteors.add(meteor)
+        all_sprites.add(meteor)
 
-# Spaceship gen
-ship = SpaceShip()
-all_sprites.add(ship)
-# meteor gen
-for i in range(NUMBER_OF_METEOR):
-    meteor = Meteor()
-    meteors.add(meteor)
-    all_sprites.add(meteor)
+    # Game loop
+    show_begin_game(screen)
+    pygame.time.wait(200)
+    running = True
+    game_over = False
+    game_win = False
+    while running:
+        # Set FPS
+        clock.tick(FPS)
+        # Check win game
+        if game_win or game_over:
+            if game_over:
+                # Delay
+                pygame.time.wait(400)
+                show_game_message("Game Over", score)
+                game_over = False
+            elif game_win:
+                pygame.time.wait(400)
+                show_game_message("You Win!", score)
+                game_win = False
+            # Reset all core variables
+            ufo_added = False
+            boss_added = False
+            score = 0
+            # Reset groups
+            all_sprites.empty()
+            meteors.empty()
+            bullets.empty()
+            UFOs.empty()
+            UFOWeapons.empty()
+            Bosses.empty()
+            # Re-Generate sprites
+            # Spaceship gen
+            ship = SpaceShip()
+            all_sprites.add(ship)
+            # meteor gen
+            for i in range(NUMBER_OF_METEOR):
+                meteor = Meteor()
+                meteors.add(meteor)
+                all_sprites.add(meteor)
 
-# Game loop
-show_begin_game(screen)
-pygame.time.wait(200)
-running = True
-game_over = False
-game_win = False
-while running:
-    # Set FPS
-    clock.tick(FPS)
-    # Check win game
-    if game_win:
-        pygame.time.wait(400)
-        show_game_win_message()
-        show_game_over()
-        game_win = False
-        game_over = False
-        ufo_added = False
-        boss_added = False
-        score = 0
-        # Reset groups
-        all_sprites.empty()
-        meteors.empty()
-        bullets.empty()
-        UFOs.empty()
-        UFOWeapons.empty()
-        Bosses.empty()
-        # Re-Generate
-        # Spaceship gen
-        ship = SpaceShip()
-        all_sprites.add(ship)
-        # meteor gen
-        for i in range(NUMBER_OF_METEOR):
-            meteor = Meteor()
-            meteors.add(meteor)
-            all_sprites.add(meteor)
 
-    # Check game over
-    if game_over:
-        pygame.time.wait(200) # Sleep 200 miliseconds
-        show_game_over()
-        game_over = False
-        ufo_added = False
-        boss_added = False
-        score = 0
-        # Reset groups
-        all_sprites.empty()
-        meteors.empty()
-        bullets.empty()
-        UFOs.empty()
-        UFOWeapons.empty()
-        Bosses.empty()
-        # Re-Generate
-        # Spaceship gen
-        ship = SpaceShip()
-        all_sprites.add(ship)
-        # meteor gen
-        for i in range(NUMBER_OF_METEOR):
-            meteor = Meteor()
-            meteors.add(meteor)
-            all_sprites.add(meteor)
-
-    # Processing events
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            running = False
-        if event.type == KEYDOWN:
-            if event.key == K_ESCAPE:
+        # Processing events
+        for event in pygame.event.get():
+            if event.type == QUIT:
                 running = False
-            if event.key == K_LEFT:
-                ship.speed = -8
-            if event.key == K_RIGHT:
-                ship.speed = 8
-            if event.key == K_SPACE:
-                ship.shoot()
+            if event.type == KEYDOWN:
+                if event.key == K_ESCAPE:
+                    running = False
+                if event.key == K_LEFT:
+                    ship.speed = -8
+                if event.key == K_RIGHT:
+                    ship.speed = 8
+                if event.key == K_SPACE:
+                    ship.shoot()
 
-    if score >= LEVEL2_SCORE:
-        level = 2
-    elif score >= LEVEL1_SCORE:
-        level = 1
-    else:
-        level = 0
-    
-    # Update
-    all_sprites.update()
+        if score >= LEVEL2_SCORE:
+            level = 2
+        elif score >= LEVEL1_SCORE:
+            level = 1
+        else:
+            level = 0
 
-    # Handling collisions
-    # ship hit meteor
-    ship_collide_meteor = ship.collide(meteors)
-    if ship_collide_meteor:
-        game_over = True
-    
-    ship_collide_ufo = ship.collide(UFOs)
-    if ship_collide_ufo:
-        game_over = True
+        if level == 1:
+            if not ufo_added:
+                # add ufo
+                for i in range(5):
+                    ufo = UFO()
+                    UFOs.add(ufo)
+                    all_sprites.add(ufo)
+                ufo_added = True
+        elif level == 2:
+            if not boss_added:
+                # add boss
+                B = BOSS()
+                Bosses.add(B)
+                all_sprites.add(B)
+                boss_added = True
+        
+        # Update
+        all_sprites.update()
 
-    ship_collide_ufo_weapons = ship.collide(UFOWeapons)
-    if ship_collide_ufo_weapons:
-        game_over = True
+        # Handling collisions
+        # ship hit meteor
+        ship_collide_meteor = ship.collide(meteors)
+        if ship_collide_meteor:
+            game_over = True
+        
+        ship_collide_ufo = ship.collide(UFOs)
+        if ship_collide_ufo:
+            game_over = True
 
-    # bullets hit ufos
-    bullet_hit_meteor = pygame.sprite.groupcollide(meteors, bullets, True, True)
-    for hit in bullet_hit_meteor:
-        # increase score
-        score += hit.score
-        # Generate explosions
-        expl = Explosion(hit)
-        all_sprites.add(expl)
-        # Create new meteor
-        if score < LEVEL1_SCORE:
-            create_new_meteor()
+        ship_collide_ufo_weapons = ship.collide(UFOWeapons)
+        if ship_collide_ufo_weapons:
+            game_over = True
 
-    # 
-    bullet_hit_ufos = pygame.sprite.groupcollide(UFOs, bullets, False, True)
-    for hit in bullet_hit_ufos:
-        print("hit ufo")
-        if hit.rect.y > 0:
-            if hit.heal <= 0:
-                # increase score
-                score += hit.score
-                # Generate explosions
-                expl = Explosion(hit)
-                all_sprites.add(expl)
-                hit.kill()
-            else:
-                hit.heal -= 1
+        # bullets hit meteor
+        bullet_hit_meteor = pygame.sprite.groupcollide(meteors, bullets, True, True)
+        for hit in bullet_hit_meteor:
+            # increase score
+            score += hit.score
+            # Generate explosions
+            expl = Explosion(hit)
+            all_sprites.add(expl)
+            # Create new meteor
+            if score < LEVEL1_SCORE:
+                create_new_meteor()
 
-    # Checking collusion of bullet and boss
-    boss_hit = pygame.sprite.groupcollide(Bosses, bullets, False, True)
-    for boss in boss_hit:
-        boss.heal -= 1
-        if boss.heal <= 0:
-            score += BOSS_SCORE
-            boss_expl = Explosion(boss)
-            all_sprites.add(boss_expl)
-            boss.kill()
-            game_win = True
-        for bullet in boss_hit[boss]:
-            bullet_expl = Explosion(bullet)
-            all_sprites.add(bullet_expl)
+        # bullet hit ufos
+        ufo_hit_by_bullet = pygame.sprite.groupcollide(UFOs, bullets, False, True)
+        for ufo in ufo_hit_by_bullet:
+            if ufo.rect.y > 0:
+                if ufo.heal <= 0:
+                    # increase score
+                    score += ufo.score
+                    # Generate explosions
+                    expl = Explosion(ufo)
+                    all_sprites.add(expl)
+                    ufo.kill()
+                else:
+                    ufo.heal -= 1
 
-    if level == 1:
-        if not ufo_added:
-            # add ufo
-            for i in range(5):
-                ufo = UFO()
-                UFOs.add(ufo)
-                all_sprites.add(ufo)
-            ufo_added = True
-    elif level == 2:
-        if not boss_added:
-            # add boss
-            B = BOSS()
-            Bosses.add(B)
-            all_sprites.add(B)
-            boss_added = True
+        # Checking collusion of bullet and boss
+        boss_hit_by_bullets = pygame.sprite.groupcollide(Bosses, bullets, False, True)
+        for boss in boss_hit_by_bullets:
+            boss.heal -= 1
+            if boss.heal <= 0:  # BOSS LOSE
+                score += BOSS_SCORE
+                boss_expl = Explosion(boss)
+                all_sprites.add(boss_expl)
+                boss.kill()
+                game_win = True
+            for bullet in boss_hit_by_bullets[boss]:
+                bullet_expl = Explosion(bullet)
+                all_sprites.add(bullet_expl)
 
-    # Draw
-    screen.blit(background, background_rect)
-    print_score(screen, score, 32, WIDTH // 2, 10)
-    print_score(screen, level, 32, 4 * WIDTH // 5, 10)
-    all_sprites.draw(screen)
-    # Render / Flip
-    pygame.display.flip()
+        # Draw
+        screen.blit(background, background_rect)
+        # Print score at center
+        draw_message(screen, "score: " + str(score), 30, WHITE, WIDTH // 2, 10)
+        # Print level at right corner
+        draw_message(screen, "level: " + str(level), 30, WHITE,  5 * WIDTH // 6, 10)
+        all_sprites.draw(screen)
+        # Render / Flip
+        pygame.display.flip()
 
-pygame.quit()
-sys.exit()
+    pygame.quit()
+    sys.exit()
+
+
+if __name__ == "__main__":
+    main(score)
