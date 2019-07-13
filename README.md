@@ -19,5 +19,5 @@
 ```sudo apt-get install virtualenv git```
 ## Cài virtualenv và git (windows)
 1. [Virtualenv](https://programwithus.com/learn-to-code/Pip-and-virtualenv-on-Windows/)
-p/s: Nếu dùng windows thì ở bước 3 sẽ là: ```.\venv\Scripts\activate```
+p/s: Nếu dùng windows thì ở bước 4 sẽ là: ```.\venv\Scripts\activate```
 2. [Git](https://www.linode.com/docs/development/version-control/how-to-install-git-on-linux-mac-and-windows/)
