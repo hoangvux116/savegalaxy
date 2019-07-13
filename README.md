@@ -14,3 +14,10 @@
 3. Chạy tiếp ```source venv/bin/activate```
 4. ```pip install -r requirements.txt```
 5. ```python3 shoot.py```
+
+## Cài virtualenv và git(Linux - Ubuntu)
+```sudo apt-get install virtualenv git```
+## Cài virtualenv và git (windows)
+1. [Virtualenv](https://programwithus.com/learn-to-code/Pip-and-virtualenv-on-Windows/)
+p/s: Nếu dùng windows thì ở bước 3 sẽ là: ```.\venv\Scripts\activate```
+2. [Git](https://www.linode.com/docs/development/version-control/how-to-install-git-on-linux-mac-and-windows/)
