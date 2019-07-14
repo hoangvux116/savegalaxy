@@ -35,6 +35,7 @@ WHITE = (255, 255, 255)
 GALAXY_COLOR = (0, 144, 133)
 
 # Init
+pygame.mixer.pre_init(44100, -16, 2, 512) ## Fix delay music
 pygame.init()
 pygame.mixer.init()
 score = 0
