@@ -1,3 +1,5 @@
+# Game trông như thế nào?
+[![Game demo](http://img.youtube.com/vi/cABAJLeM0tE/0.jpg)](http://www.youtube.com/watch?v=cABAJLeM0tE "Game Save Galaxy Demo")
 ## Cách chơi:
 1. Sử dụng phím điều hướng <- hoặc -> để di chuyển tàu vũ trụ(spaceship)
 2. Tàu vũ trụ không được va vào các đối tượng khác(meteor, UFO, etc...). Nếu va phải, Gameover
