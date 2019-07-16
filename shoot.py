@@ -118,6 +118,7 @@ class Bullet(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.transform.scale(bullet_img, (10, 40))
         self.image.set_colorkey(BLACK)
+        self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
         self.rect.bottom = y
         self.rect.centerx = x
@@ -138,6 +139,7 @@ class Meteor(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = random.choice(meteor_imgs)
         self.image.set_colorkey(BLACK)
+        self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
         self.radius = self.rect.width // 2
         # pygame.draw.circle(self.image, RED, self.rect.center, self.radius)
@@ -167,6 +169,7 @@ class SpaceShip(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.transform.scale(spaceship_img, (65, 50))
         self.image.set_colorkey(BLACK)
+        self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
         self.radius = 24
         # pygame.draw.circle(self.image, RED, self.rect.center, self.radius)
@@ -199,7 +202,7 @@ class SpaceShip(pygame.sprite.Sprite):
 
     def collide(self, group):
         collision = False
-        group_crashed = pygame.sprite.spritecollide(self, group, False, pygame.sprite.collide_circle)
+        group_crashed = pygame.sprite.spritecollide(self, group, False, pygame.sprite.collide_mask)
         if group_crashed:
             for element in group_crashed:
                 # Generate explosions
@@ -216,6 +219,7 @@ class UFO(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = random.choice(ufo_imgs)
         self.image.set_colorkey(BLACK)
+        self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
         self.radius = self.rect.width // 2
         # pygame.draw.circle(self.image, RED, self.rect.center, self.radius)
@@ -263,6 +267,7 @@ class UFOWeapon(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.transform.scale(random.choice(ufo_weapons_img), (10, 40))
         self.image.set_colorkey(BLACK)
+        self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
         self.rect.bottom = y
         self.rect.centerx = x
@@ -282,6 +287,7 @@ class BOSS(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.transform.scale(boss_img, (800, 400))
         self.image.set_colorkey(BLACK)
+        self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
         self.rect.x = WIDTH + 200
         self.rect.centery = 100
@@ -530,7 +536,7 @@ def main(score):
             game_over = True
 
         # bullets hit meteor
-        bullet_hit_meteor = pygame.sprite.groupcollide(meteors, bullets, True, True)
+        bullet_hit_meteor = pygame.sprite.groupcollide(meteors, bullets, True, True, pygame.sprite.collide_mask)
         for hit in bullet_hit_meteor:
             # increase score
             score += hit.score
@@ -543,7 +549,7 @@ def main(score):
                 create_new_meteor()
 
         # bullet hit ufos
-        ufo_hit_by_bullet = pygame.sprite.groupcollide(UFOs, bullets, False, True)
+        ufo_hit_by_bullet = pygame.sprite.groupcollide(UFOs, bullets, False, True, pygame.sprite.collide_mask)
         for ufo in ufo_hit_by_bullet:
             if ufo.rect.y > 0:
                 if ufo.heal <= 0:
@@ -558,7 +564,7 @@ def main(score):
                     ufo.heal -= 1
 
         # Checking collusion of bullet and boss
-        boss_hit_by_bullets = pygame.sprite.groupcollide(Bosses, bullets, False, True)
+        boss_hit_by_bullets = pygame.sprite.groupcollide(Bosses, bullets, False, True, pygame.sprite.collide_mask)
         for boss in boss_hit_by_bullets:
             boss.heal -= 1
             if boss.heal <= 0:  # BOSS LOSE
